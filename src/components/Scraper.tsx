@@ -7,11 +7,13 @@ function WalmartItemToString(w: WalmartItem, index: number) : string {
 }
 
 interface IProps {
-    queryString: string
+    queryString: string,
+    onFetchReady: (items: WalmartItem[]) => void;
 }
 interface ScraperState {
     spinner: boolean,
     displayText: string,
+    items: WalmartItem[],
     error: boolean
 }
 class Scraper extends React.Component<IProps, ScraperState> {
@@ -20,6 +22,7 @@ class Scraper extends React.Component<IProps, ScraperState> {
         this.state = {
             spinner: true,
             displayText: "",
+            items: [],
             error: false
         };
     }
@@ -32,8 +35,10 @@ class Scraper extends React.Component<IProps, ScraperState> {
             this.setState({
             spinner: false,
             error: false,
+            items: res,
             displayText: res.map((r, index) => WalmartItemToString(r, index)).join(", ")
             });
+            this.props.onFetchReady(res);
             console.log(res);
     }
         ).catch((e) => {
@@ -74,7 +79,7 @@ class Scraper extends React.Component<IProps, ScraperState> {
         } else {
             return (
             <div>
-                <p>{this.state.displayText}</p>
+                <p>Request succeeded</p>
             </div>
             );
         };
