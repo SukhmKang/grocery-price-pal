@@ -15,7 +15,7 @@ const { executablePath } = require('puppeteer')
 dotenv.config();
 
 const app: Express = express();
-const PORT : number = 5000;
+const PORT : number = 3001;
 
 app.get('/express_backend/:querystring', async (req: Request, res: Response) => {
     res.send(await scrapeWalmart(req.params.querystring));

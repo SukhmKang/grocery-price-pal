@@ -46,13 +46,12 @@ var StealthPlugin = require('puppeteer-extra-plugin-stealth');
 var executablePath = require('puppeteer').executablePath;
 dotenv_1.default.config();
 var app = (0, express_1.default)();
-var PORT = 5000;
+var PORT = 3001;
 app.get('/express_backend/:querystring', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                console.log(req);
                 _b = (_a = res).send;
                 return [4 /*yield*/, scrapeWalmart(req.params.querystring)];
             case 1:
