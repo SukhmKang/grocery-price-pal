@@ -3,7 +3,7 @@ import React from 'react';
 import './ShoppingCart.css';
 
 interface IProps {
-    gridItemsList: { name: string; image_src: string; selected: boolean; }[];
+    gridItemList: { name: string; image_src: string; selected: boolean; }[];
     changeSelected: (name: string, selected: boolean) => void;
     showCart: boolean;
     setShowCart: (show: boolean) => void;
@@ -15,7 +15,7 @@ class ShoppingCart extends React.Component<IProps> {
     }
 
     render() {
-        const { gridItemsList, changeSelected, showCart, setShowCart } = this.props
+        const { gridItemList, changeSelected, showCart, setShowCart } = this.props
 
         return (
             <div>
@@ -24,7 +24,7 @@ class ShoppingCart extends React.Component<IProps> {
                     <div className="popup-box">
                         <h1>Your Shopping Cart</h1>
                         <div className="cart-list">
-                            {gridItemsList.map((item, i) => {
+                            {gridItemList.map((item, i) => {
                                 if (item.selected) {
                                     return (
                                         <div className="cart-item" key={i}>

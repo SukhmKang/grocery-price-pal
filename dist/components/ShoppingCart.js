@@ -31,25 +31,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = __importDefault(require("react"));
+require("./ShoppingCart.css");
 var ShoppingCart = /** @class */ (function (_super) {
     __extends(ShoppingCart, _super);
     function ShoppingCart(props) {
-        var _this = _super.call(this, props) || this;
-        _this.removeSelected = _this.removeSelected.bind(_this);
-        return _this;
+        return _super.call(this, props) || this;
     }
-    ShoppingCart.prototype.removeSelected = function (name) {
-        var changeSelected = this.props.changeSelected;
-        changeSelected(name, false);
-    };
     ShoppingCart.prototype.render = function () {
-        var gridItemsList = this.props.gridItemsList;
-        var removeSelected = this.removeSelected;
-        return ((0, jsx_runtime_1.jsx)("div", { children: gridItemsList.map(function (item, i) {
-                if (item.selected) {
-                    return ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("p", { children: item.name }), (0, jsx_runtime_1.jsx)("p", { children: item.image_src }), (0, jsx_runtime_1.jsx)("button", __assign({ onClick: function () { return removeSelected(item.name); } }, { children: "Remove" }))] }, i));
-                }
-            }) }));
+        var _a = this.props, gridItemList = _a.gridItemList, changeSelected = _a.changeSelected, showCart = _a.showCart, setShowCart = _a.setShowCart;
+        return ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("button", __assign({ onClick: function () { return setShowCart(true); } }, { children: "ShoppingCart" })), showCart && (0, jsx_runtime_1.jsx)("div", __assign({ className: "popup-cart" }, { children: (0, jsx_runtime_1.jsxs)("div", __assign({ className: "popup-box" }, { children: [(0, jsx_runtime_1.jsx)("h1", { children: "Your Shopping Cart" }), (0, jsx_runtime_1.jsx)("div", __assign({ className: "cart-list" }, { children: gridItemList.map(function (item, i) {
+                                    if (item.selected) {
+                                        return ((0, jsx_runtime_1.jsxs)("div", __assign({ className: "cart-item" }, { children: [(0, jsx_runtime_1.jsx)("p", { children: item.name }), (0, jsx_runtime_1.jsx)("p", { children: item.image_src }), (0, jsx_runtime_1.jsx)("button", __assign({ onClick: function () { return changeSelected(item.name, false); } }, { children: "Remove" }))] }), i));
+                                    }
+                                }) })), (0, jsx_runtime_1.jsx)("button", __assign({ className: "close-button", onClick: function () { return setShowCart(false); } }, { children: "Close" }))] })) }))] }));
     };
     return ShoppingCart;
 }(react_1.default.Component));

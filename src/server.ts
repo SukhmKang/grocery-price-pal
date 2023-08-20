@@ -7,6 +7,7 @@ import {
     NutritionFactsNode,
     NUTRITION_OPTIONS,
 } from './constants';
+import { BrowserEdge } from 'react-bootstrap-icons';
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
@@ -20,6 +21,10 @@ const PORT : number = 3001;
 app.get('/express_backend/:querystring', async (req: Request, res: Response) => {
     res.send(await scrapeWalmart(req.params.querystring));
 });
+
+app.get('/fetch_item_lists/:querystring', async (req: Request, res: Response) => {
+    res.send(await scrapeWalmartList(req.params.querystring));
+})
 
 app.get('/fetch_detailed_items/:querystring', async (req: Request, res: Response) => {
     console.log(req.params.querystring.split("|"));
@@ -71,6 +76,50 @@ async function scrapeWalmart(query: string): Promise<WalmartItem[]> {
         };
         return parseSearchResults(itemRoot);
     });
+    await browser.close();
+    return items;
+}
+
+async function scrapeWalmartList(querylist: string): Promise<WalmartItem[][]> {
+    const itemList = querylist.split("_");
+    const browser = await puppeteer.launch({ headless: "new", executablePath: executablePath() });
+    const items = await Promise.all(
+        itemList.map(async (item) => {
+            const page = await browser.newPage();
+            await page.goto(`https://www.walmart.com/search?q=${item}&sort=price_low`);
+            return await page.evaluate(() => {
+                /* Helpers */
+                const extractPrice = (price: string | null | undefined) : string | undefined => {
+                    const matches = price?.match(/(\$\d+\.\d+)/);
+                    return (matches) ? matches[1] : undefined;
+                };
+
+                const parseSearchResults = (itemRoot: Element) => {
+                    const itemChildren = itemRoot.querySelectorAll('.sans-serif.mid-gray.relative.flex.flex-column.w-100.hide-child-opacity');
+        
+                    return Array.from(itemChildren).map((item) : WalmartItem => {
+                        const title = item.querySelector('.w_iUH7');
+                        const price = item.querySelector('div[data-testid="list-view"]')?.querySelector('.w_iUH7');
+                        const image = item.querySelector('img')?.getAttribute('src');
+                        const urlLink = item.querySelector('a')?.getAttribute('href');
+        
+                        return {
+                            title: (title != null) ? (title as HTMLElement | null)?.innerText : undefined,
+                            price: (price != null) ? extractPrice((price as HTMLElement | null)?.innerText) : undefined,
+                            image: (image != null) ? image : undefined,
+                            urlLink: (urlLink != null) ? "https://www.walmart.com" + urlLink : undefined
+                        };
+                    });
+                };
+                /* End of Helpers */
+
+                const itemRoot : Element | null = document.querySelector('div[data-stack-index="0"]');
+                if (itemRoot == null) {
+                    throw new Error();
+                };
+                return parseSearchResults(itemRoot);
+            });
+        }));
     await browser.close();
     return items;
 }

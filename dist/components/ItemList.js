@@ -31,23 +31,28 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = __importDefault(require("react"));
-require("./ItemGrid.css");
-var ItemGrid = /** @class */ (function (_super) {
-    __extends(ItemGrid, _super);
-    function ItemGrid(props) {
-        return _super.call(this, props) || this;
+var GroceryItemNode_1 = __importDefault(require("./GroceryItemNode"));
+var Button_1 = __importDefault(require("react-bootstrap/Button"));
+function getListPerm(items, ordering) {
+    return ordering.map(function (n) { return items[n]; });
+}
+var ItemList = /** @class */ (function (_super) {
+    __extends(ItemList, _super);
+    function ItemList(props) {
+        var _this = _super.call(this, props) || this;
+        _this.state = {
+            ordering: (new Array).fill(0).map(function (x, ind) { return ind; }),
+            fetchItemDetails: (function () {
+                fetch("/fetch_detailed_items/".concat(encodeURIComponent(_this.props.items[0].urlLink)), {
+                    method: "GET"
+                }).then(function (res) { return res.json(); }).then(function (res) { return console.log(res); }).catch(function (e) { return console.log(e); });
+            }).bind(_this)
+        };
+        return _this;
     }
-    ItemGrid.prototype.render = function () {
-        var gridItemList = this.props.gridItemList;
-        var changeSelected = this.props.changeSelected;
-        return ((0, jsx_runtime_1.jsx)("div", __assign({ className: "grid-container" }, { children: (0, jsx_runtime_1.jsx)("div", __assign({ className: "item-grid" }, { children: gridItemList.map(function (item, i) {
-                    var backgroundString = item.selected ? 'darkslategrey' : 'slategrey';
-                    var background = {
-                        backgroundColor: backgroundString
-                    };
-                    return ((0, jsx_runtime_1.jsxs)("div", __assign({ onClick: function () { return changeSelected(item.name, !item.selected); }, className: "grid-box", style: background }, { children: [(0, jsx_runtime_1.jsx)("p", { children: item.image_src }), (0, jsx_runtime_1.jsx)("p", { children: item.name })] }), i));
-                }) })) })));
+    ItemList.prototype.render = function () {
+        return ((0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)(Button_1.default, __assign({ onClick: this.state.fetchItemDetails }, { children: "See Detailed Info" })), (0, jsx_runtime_1.jsx)("div", __assign({ className: "flex-container" }, { children: (0, jsx_runtime_1.jsx)("ul", { children: this.props.items.map(function (item, ind) { return (new GroceryItemNode_1.default).listItemFromItem(item, ind); }) }) }))] }));
     };
-    return ItemGrid;
+    return ItemList;
 }(react_1.default.Component));
-exports.default = ItemGrid;
+exports.default = ItemList;

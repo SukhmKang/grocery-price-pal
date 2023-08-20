@@ -32,38 +32,41 @@ var Scraper = /** @class */ (function (_super) {
         _this.state = {
             spinner: true,
             displayText: "",
+            itemsList: [],
             error: false
         };
         return _this;
     }
-    Scraper.prototype.makeFetch = function () {
-        var _this = this;
-        fetch("/express_backend/".concat(this.props.queryString), {
-            method: "GET"
-        }).then(function (res) { return res.json(); }).then(function (res) {
-            _this.setState({
-                spinner: false,
-                error: false,
-                displayText: res.map(function (r, index) { return WalmartItemToString(r, index); }).join(", ")
-            });
-            console.log(res);
-        }).catch(function (e) {
-            console.log(e);
-            _this.setState({
-                spinner: false,
-                error: true,
-                displayText: ""
-            });
-        });
+    Scraper.prototype.makeFetchList = function () {
+        // fetch(`/fetch_item_lists/${this.props.queryListString}`, {
+        //     method: "GET"
+        // }).then(res => res.json()
+        // ).then((res : WalmartItem[][]) => {
+        //     this.setState({
+        //     spinner: false,
+        //     error: false,
+        //     itemsList: res,
+        //     displayText: res.map((r, index) => WalmartItemToString(r, index)).join(", ")
+        //     });
+        //     this.props.onFetchReady(res);
+        //     console.log(res);
+        // }).catch((e) => {
+        //     console.log(e);
+        //     this.setState({
+        //         spinner: false,
+        //         error: true,
+        //         displayText: ""
+        //     });
+        // });
     };
     Scraper.prototype.componentDidMount = function () {
-        if (this.props.queryString) {
-            this.makeFetch();
+        if (this.props.queryListString) {
+            this.makeFetchList();
         }
     };
     Scraper.prototype.componentDidUpdate = function (prevProps, prevState, snapshot) {
-        if ((prevProps.queryString !== this.props.queryString) && this.props.queryString) {
-            this.makeFetch();
+        if ((prevProps.queryListString !== this.props.queryListString) && this.props.queryListString) {
+            this.makeFetchList();
         }
     };
     Scraper.prototype.render = function () {
@@ -74,7 +77,7 @@ var Scraper = /** @class */ (function (_super) {
             return ((0, jsx_runtime_1.jsx)("div", { children: (0, jsx_runtime_1.jsx)("img", { src: "https://upload.wikimedia.org/wikipedia/commons/0/06/Face-sad.svg" }) }));
         }
         else {
-            return ((0, jsx_runtime_1.jsx)("div", { children: (0, jsx_runtime_1.jsx)("p", { children: this.state.displayText }) }));
+            return ((0, jsx_runtime_1.jsx)("div", { children: (0, jsx_runtime_1.jsx)("p", { children: "Request succeeded" }) }));
         }
         ;
     };

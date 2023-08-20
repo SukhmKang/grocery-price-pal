@@ -36,6 +36,8 @@
     flex-direction: column;
     align-items: center;
     margin: 15px 0px;
+    background-color: slategrey;
+    padding: 10px 20px;
 }
 
 .close-button {

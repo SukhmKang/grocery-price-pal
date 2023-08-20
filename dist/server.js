@@ -41,8 +41,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
 var dotenv_1 = __importDefault(require("dotenv"));
+var constants_1 = require("./constants");
 var puppeteer = require('puppeteer-extra');
 var StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
 var executablePath = require('puppeteer').executablePath;
 dotenv_1.default.config();
 var app = (0, express_1.default)();
@@ -60,6 +62,33 @@ app.get('/express_backend/:querystring', function (req, res) { return __awaiter(
         }
     });
 }); });
+app.get('/fetch_item_lists/:querystring', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                _b = (_a = res).send;
+                return [4 /*yield*/, scrapeWalmartList(req.params.querystring)];
+            case 1:
+                _b.apply(_a, [_c.sent()]);
+                return [2 /*return*/];
+        }
+    });
+}); });
+app.get('/fetch_detailed_items/:querystring', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                console.log(req.params.querystring.split("|"));
+                _b = (_a = res).send;
+                return [4 /*yield*/, scrapeWalmartItems(req.params.querystring)];
+            case 1:
+                _b.apply(_a, [_c.sent()]);
+                return [2 /*return*/];
+        }
+    });
+}); });
 app.listen(PORT, function () {
     console.log("\u26A1\uFE0F[server]: Server is running at https://localhost:".concat(PORT));
 });
@@ -68,38 +97,46 @@ function scrapeWalmart(query) {
         var browser, page, items;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0:
-                    puppeteer.use(StealthPlugin());
-                    return [4 /*yield*/, puppeteer.launch({ headless: "new", executablePath: executablePath() })];
+                case 0: return [4 /*yield*/, puppeteer.launch({ headless: "new", executablePath: executablePath() })];
                 case 1:
                     browser = _a.sent();
                     return [4 /*yield*/, browser.newPage()];
                 case 2:
                     page = _a.sent();
-                    return [4 /*yield*/, page.goto("https://www.walmart.com/search?q=".concat(query), {
+                    return [4 /*yield*/, page.goto("https://www.walmart.com/search?q=".concat(query, "&sort=price_low"), {
                             waitUntil: "domcontentloaded",
                         })];
                 case 3:
                     _a.sent();
                     return [4 /*yield*/, page.evaluate(function () {
+                            /* Helpers */
+                            var extractPrice = function (price) {
+                                var matches = price === null || price === void 0 ? void 0 : price.match(/(\$\d+\.\d+)/);
+                                return (matches) ? matches[1] : undefined;
+                            };
+                            var parseSearchResults = function (itemRoot) {
+                                var itemChildren = itemRoot.querySelectorAll('.sans-serif.mid-gray.relative.flex.flex-column.w-100.hide-child-opacity');
+                                return Array.from(itemChildren).map(function (item) {
+                                    var _a, _b, _c;
+                                    var title = item.querySelector('.w_iUH7');
+                                    var price = (_a = item.querySelector('div[data-testid="list-view"]')) === null || _a === void 0 ? void 0 : _a.querySelector('.w_iUH7');
+                                    var image = (_b = item.querySelector('img')) === null || _b === void 0 ? void 0 : _b.getAttribute('src');
+                                    var urlLink = (_c = item.querySelector('a')) === null || _c === void 0 ? void 0 : _c.getAttribute('href');
+                                    return {
+                                        title: (title != null) ? title === null || title === void 0 ? void 0 : title.innerText : undefined,
+                                        price: (price != null) ? extractPrice(price === null || price === void 0 ? void 0 : price.innerText) : undefined,
+                                        image: (image != null) ? image : undefined,
+                                        urlLink: (urlLink != null) ? "https://www.walmart.com" + urlLink : undefined
+                                    };
+                                });
+                            };
+                            /* End of Helpers */
                             var itemRoot = document.querySelector('div[data-stack-index="0"]');
                             if (itemRoot == null) {
                                 throw new Error();
                             }
-                            var itemChildren = itemRoot.querySelectorAll('.sans-serif.mid-gray.relative.flex.flex-column.w-100.hide-child-opacity');
-                            return Array.from(itemChildren).map(function (item) {
-                                var _a, _b, _c;
-                                var title = item.querySelector('.w_iUH7');
-                                var price = (_a = item.querySelector('div[data-testid="list-view"]')) === null || _a === void 0 ? void 0 : _a.querySelector('.w_iUH7');
-                                var image = (_b = item.querySelector('img')) === null || _b === void 0 ? void 0 : _b.getAttribute('src');
-                                var urlLink = (_c = item.querySelector('a')) === null || _c === void 0 ? void 0 : _c.getAttribute('href');
-                                return {
-                                    title: (title != null) ? title.innerText : undefined,
-                                    price: (price != null) ? price.innerText : undefined,
-                                    image: (image != null) ? image : undefined,
-                                    urlLink: (urlLink != null) ? "https://www.walmart.com/" + urlLink : undefined
-                                };
-                            });
+                            ;
+                            return parseSearchResults(itemRoot);
                         })];
                 case 4:
                     items = _a.sent();
@@ -111,3 +148,188 @@ function scrapeWalmart(query) {
         });
     });
 }
+function scrapeWalmartList(querylist) {
+    return __awaiter(this, void 0, void 0, function () {
+        var itemList, browser, items;
+        var _this = this;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    itemList = querylist.split("_");
+                    return [4 /*yield*/, puppeteer.launch({ headless: "new", executablePath: executablePath() })];
+                case 1:
+                    browser = _a.sent();
+                    return [4 /*yield*/, Promise.all(itemList.map(function (item) { return __awaiter(_this, void 0, void 0, function () {
+                            var page;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, browser.newPage()];
+                                    case 1:
+                                        page = _a.sent();
+                                        return [4 /*yield*/, page.goto("https://www.walmart.com/search?q=".concat(item, "&sort=price_low"))];
+                                    case 2:
+                                        _a.sent();
+                                        return [4 /*yield*/, page.evaluate(function () {
+                                                /* Helpers */
+                                                var extractPrice = function (price) {
+                                                    var matches = price === null || price === void 0 ? void 0 : price.match(/(\$\d+\.\d+)/);
+                                                    return (matches) ? matches[1] : undefined;
+                                                };
+                                                var parseSearchResults = function (itemRoot) {
+                                                    var itemChildren = itemRoot.querySelectorAll('.sans-serif.mid-gray.relative.flex.flex-column.w-100.hide-child-opacity');
+                                                    return Array.from(itemChildren).map(function (item) {
+                                                        var _a, _b, _c;
+                                                        var title = item.querySelector('.w_iUH7');
+                                                        var price = (_a = item.querySelector('div[data-testid="list-view"]')) === null || _a === void 0 ? void 0 : _a.querySelector('.w_iUH7');
+                                                        var image = (_b = item.querySelector('img')) === null || _b === void 0 ? void 0 : _b.getAttribute('src');
+                                                        var urlLink = (_c = item.querySelector('a')) === null || _c === void 0 ? void 0 : _c.getAttribute('href');
+                                                        return {
+                                                            title: (title != null) ? title === null || title === void 0 ? void 0 : title.innerText : undefined,
+                                                            price: (price != null) ? extractPrice(price === null || price === void 0 ? void 0 : price.innerText) : undefined,
+                                                            image: (image != null) ? image : undefined,
+                                                            urlLink: (urlLink != null) ? "https://www.walmart.com" + urlLink : undefined
+                                                        };
+                                                    });
+                                                };
+                                                /* End of Helpers */
+                                                var itemRoot = document.querySelector('div[data-stack-index="0"]');
+                                                if (itemRoot == null) {
+                                                    throw new Error();
+                                                }
+                                                ;
+                                                return parseSearchResults(itemRoot);
+                                            })];
+                                    case 3: return [2 /*return*/, _a.sent()];
+                                }
+                            });
+                        }); }))];
+                case 2:
+                    items = _a.sent();
+                    return [4 /*yield*/, browser.close()];
+                case 3:
+                    _a.sent();
+                    return [2 /*return*/, items];
+            }
+        });
+    });
+}
+function scrapeWalmartItems(urls) {
+    return __awaiter(this, void 0, void 0, function () {
+        var urlList, browser, items;
+        var _this = this;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    urlList = urls.split("|");
+                    return [4 /*yield*/, puppeteer.launch({ headless: "new", executablePath: executablePath() })];
+                case 1:
+                    browser = _a.sent();
+                    return [4 /*yield*/, Promise.all(urlList.map(function (url) { return __awaiter(_this, void 0, void 0, function () {
+                            var page;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, browser.newPage()];
+                                    case 1:
+                                        page = _a.sent();
+                                        return [4 /*yield*/, page.goto(url, {
+                                                waitUntil: "domcontentloaded",
+                                            })];
+                                    case 2:
+                                        _a.sent();
+                                        return [4 /*yield*/, page.evaluate(function (NUTRITION_LIST) {
+                                                var _a, _b;
+                                                /* Helpers */
+                                                var parseNutritionTable = function (table) {
+                                                    if (table == null)
+                                                        return [];
+                                                    var rows = table.querySelectorAll('tr');
+                                                    return Array.from(rows).map(function (row) {
+                                                        var _a;
+                                                        var cells = row.querySelectorAll('td');
+                                                        if (!cells || Array.from(cells).length < 2)
+                                                            return;
+                                                        var nutritionRegex = new RegExp("(" + NUTRITION_LIST.join("|") + ")");
+                                                        var matches = cells[0].innerHTML.match(nutritionRegex);
+                                                        if (matches == null)
+                                                            return;
+                                                        var nutritionType = matches[1];
+                                                        var amount = (_a = cells[0].querySelector(".ml2")) === null || _a === void 0 ? void 0 : _a.innerHTML;
+                                                        var percentage = cells[1].innerText;
+                                                        var toReturn = {
+                                                            name: nutritionType,
+                                                            amount: amount,
+                                                            percentDailyValue: (new RegExp("\d+(\.\d*)?\%").test(percentage)) ? percentage : undefined
+                                                        };
+                                                        return toReturn;
+                                                    }).filter(function (x) { return x != null; }).map(function (x) { return x; });
+                                                };
+                                                var parseNutritionSection = function (nutritionSection) {
+                                                    var _a, _b;
+                                                    if (nutritionSection == null)
+                                                        return;
+                                                    var servings = nutritionSection.querySelector('.mid-gray.lh-copy.ttl.mv1');
+                                                    var servingsPerContainer = (servings != null) ? servings.innerText : undefined;
+                                                    var servingSizeObj = (_a = (nutritionSection).querySelector('.flex.justify-between.dark-gray.mv1.b.lh-copy')) === null || _a === void 0 ? void 0 : _a.querySelectorAll('span');
+                                                    var servingSize = (servingSizeObj != null) ? servingSizeObj[1].innerText : undefined;
+                                                    var caloriesObj = (_b = (nutritionSection).querySelector('.flex.justify-between.bb.lh-copy.b.f2.bw2.pb1')) === null || _b === void 0 ? void 0 : _b.querySelectorAll('span');
+                                                    var calories = (caloriesObj != null) ? caloriesObj[1].innerText : undefined;
+                                                    var tableInfo = parseNutritionTable(nutritionSection.querySelector('table'));
+                                                    var toReturn = {
+                                                        facts: tableInfo,
+                                                        servingsPerContainer: servingsPerContainer,
+                                                        servingSize: servingSize,
+                                                        calories: calories
+                                                    };
+                                                    return toReturn;
+                                                };
+                                                var parseBuyBox = function (buyBox) {
+                                                    var _a, _b, _c;
+                                                    if (buyBox == null)
+                                                        return undefined;
+                                                    var reviewBox = buyBox.querySelector('div[data-testid="reviews-and-ratings"]');
+                                                    if (reviewBox != null) {
+                                                        var rating = (_b = (_a = reviewBox.querySelector(".f7.rating-number")) === null || _a === void 0 ? void 0 : _a.innerText) === null || _b === void 0 ? void 0 : _b.replaceAll(/[\(\)]/g, "");
+                                                        var numReviews = (_c = reviewBox.querySelector('a[data-testid="item-review-section-link"]')) === null || _c === void 0 ? void 0 : _c.innerText;
+                                                        return {
+                                                            rating: rating,
+                                                            numReviews: numReviews
+                                                        };
+                                                    }
+                                                    return undefined;
+                                                };
+                                                var parseProductSection = function (productSection) {
+                                                    var _a;
+                                                    if (productSection == null)
+                                                        return;
+                                                    return (_a = productSection.querySelector('.dangerous-html.mb3')) === null || _a === void 0 ? void 0 : _a.innerText;
+                                                };
+                                                /* End of Helpers */
+                                                var nutritionSection = document.querySelector('.w_wOcC.w_EjQC');
+                                                var nutrition = parseNutritionSection(nutritionSection);
+                                                var buyBox = document.querySelector('.buy-box-column');
+                                                var buyInfo = parseBuyBox(buyBox);
+                                                var productSection = document.querySelector('div[data-testid="product-description-content"]');
+                                                var productInfo = parseProductSection(productSection);
+                                                var toReturn = {
+                                                    nutritionFacts: nutrition,
+                                                    rating: (_a = buyInfo === null || buyInfo === void 0 ? void 0 : buyInfo.rating) !== null && _a !== void 0 ? _a : "Missing",
+                                                    numReviews: (_b = buyInfo === null || buyInfo === void 0 ? void 0 : buyInfo.numReviews) !== null && _b !== void 0 ? _b : "Missing",
+                                                    description: productInfo !== null && productInfo !== void 0 ? productInfo : "Missing"
+                                                };
+                                                return toReturn;
+                                            }, constants_1.NUTRITION_OPTIONS)];
+                                    case 3: return [2 /*return*/, _a.sent()];
+                                }
+                            });
+                        }); }))];
+                case 2:
+                    items = _a.sent();
+                    return [4 /*yield*/, browser.close()];
+                case 3:
+                    _a.sent();
+                    return [2 /*return*/, items];
+            }
+        });
+    });
+}
+;
