@@ -1,0 +1,23 @@
+.grid-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.item-grid {
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    width: 1000px;
+    place-items: center;
+    row-gap: 2em;
+    column-gap: 1em;
+}
+
+.grid-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #708090;
+    width: 200px;
+    height: 200px;
+}
