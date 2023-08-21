@@ -1,11 +1,12 @@
 import React from 'react';
 import { FidgetSpinner } from 'react-loader-spinner';
-import { WalmartItem } from '../constants';
+import { WalmartItem, ItemCache, GenericItem } from '../constants';
 
 interface IProps {
-    gridItemList: { name: string; image_src: string; selected: boolean; }[];
+    gridItemList: GenericItem[];
     setShowResults: (show: boolean) => void;
-    setWalmartItems: (items: WalmartItem[][]) => void;
+    setWalmartItems: (items: ItemCache) => void;
+    cache: ItemCache
 }
 interface GenerateState {
     spinner: boolean,
@@ -22,10 +23,16 @@ class GenerateButton extends React.Component<IProps, GenerateState> {
     }
 
     makeFetchList() {
-        const { gridItemList, setShowResults, setWalmartItems } = this.props;
+        const { gridItemList, setShowResults, setWalmartItems, cache } = this.props;
 
-        const selectedItems = gridItemList.filter((item) => item.selected == true);
+        const selectedItems = gridItemList.filter(
+            (item) => item.selected === true && !Object.keys(cache).includes(item.name)
+        );
         const selectedString = selectedItems.map((item) => item.name).join('_');
+        if (selectedString === "") {
+            setShowResults(true);
+            return;
+        };
         
         this.setState({
             spinner: true
@@ -34,12 +41,12 @@ class GenerateButton extends React.Component<IProps, GenerateState> {
         fetch(`/fetch_item_lists/${selectedString}`, {
             method: "GET"
         }).then(res => res.json()
-        ).then((res : WalmartItem[][]) => {
+        ).then((res : ItemCache) => {
             this.setState({
                 spinner: false,
                 error: false,
             });
-            setWalmartItems(res);
+            setWalmartItems({...cache, ...res});
             setShowResults(true);
             console.log(res);
         }).catch((e) => {

@@ -1,4 +1,6 @@
-const itemGridList = [
+import { GenericItem } from '../constants';
+
+const itemGridList: GenericItem[] = [
     {
         name: "Apples",
         image_src: "not yet",
@@ -15,7 +17,7 @@ const itemGridList = [
         selected: false
     },
     {
-        name: "Avacados",
+        name: "Avocados",
         image_src: "not yet",
         selected: false
     },
@@ -144,6 +146,6 @@ const itemGridList = [
         image_src: "not yet",
         selected: false
     }
-]
+];
 
-export default itemGridList
+export default itemGridList;

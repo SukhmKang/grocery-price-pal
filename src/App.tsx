@@ -5,16 +5,16 @@ import ItemGrid from './components/ItemGrid';
 import ShoppingCart from './components/ShoppingCart';
 import GenerateButton from './components/GenerateButton';
 import ResultsDisplay from './components/ResultsDisplay'
-import { WalmartItem } from './constants';
+import { WalmartItem, GenericItem, ItemCache } from './constants';
 
 interface IProps {
 
 }
 interface AppState{
-    gridItemList: { name: string; image_src: string; selected: boolean; }[],
+    gridItemList: GenericItem[],
     showCart: boolean,
     showResults: boolean,
-    walmartItems: WalmartItem[][]
+    walmartItems: ItemCache
 };
 class App extends Component<IProps, AppState> {
     constructor(props: IProps) {
@@ -23,25 +23,25 @@ class App extends Component<IProps, AppState> {
             gridItemList: itemGridList,
             showCart: false,
             showResults: false,
-            walmartItems: []
+            walmartItems: {}
         }
-        this.changeSelected = this.changeSelected.bind(this)
-        this.setShowCart = this.setShowCart.bind(this)
-        this.setShowResults = this.setShowResults.bind(this)
-        this.setWalmartItems = this.setWalmartItems.bind(this)
+        this.changeSelected = this.changeSelected.bind(this);
+        this.setShowCart = this.setShowCart.bind(this);
+        this.setShowResults = this.setShowResults.bind(this);
+        this.setWalmartItems = this.setWalmartItems.bind(this);
     }
 
     changeSelected(name: string, selected: boolean) {
         const { gridItemList } = this.state;
 
-        const newList: { name: string; image_src: string; selected: boolean; }[]
+        const newList: GenericItem[]
             = gridItemList.map((item) => {
-                if (item.name == name) {
-                    return ({
+                if (item.name === name) {
+                    return {
                         name: item.name,
                         image_src: item.image_src,
                         selected: selected
-                    })
+                    }
                 } else {
                     return item;
                 }
@@ -64,7 +64,7 @@ class App extends Component<IProps, AppState> {
         });
     }
 
-    setWalmartItems(items: WalmartItem[][]) {
+    setWalmartItems(items: ItemCache) {
         this.setState({
             walmartItems: items
         })
@@ -85,7 +85,8 @@ class App extends Component<IProps, AppState> {
                 {!showResults &&
                     <GenerateButton gridItemList={gridItemList}
                                     setShowResults={setShowResults}
-                                    setWalmartItems={setWalmartItems}></GenerateButton>}
+                                    setWalmartItems={setWalmartItems}
+                                    cache={walmartItems}></GenerateButton>}
                 {!showResults &&
                     <ItemGrid gridItemList={gridItemList}
                               changeSelected={changeSelected}></ItemGrid>}

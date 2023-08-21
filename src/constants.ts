@@ -12,6 +12,12 @@ export const NUTRITION_OPTIONS = [
 
 export const NUTRITION_REGEX = new RegExp("(" + NUTRITION_OPTIONS.join("|") + ")");
 
+export interface GenericItem {
+    name: string,
+    image_src: string,
+    selected: boolean
+}
+
 export interface WalmartItem {
     title: string | undefined,
     price: string | undefined,
@@ -40,4 +46,8 @@ export interface SupplementaryInfo {
 }
 
 export interface DetailedWalmartItem extends WalmartItem {
+}
+
+export interface ItemCache {
+    [key: string]: WalmartItem[]
 }
