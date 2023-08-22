@@ -6,8 +6,8 @@ import {
     NutritionFacts,
     NutritionFactsNode,
     NUTRITION_OPTIONS,
+    ItemCache
 } from './constants';
-import { BrowserEdge } from 'react-bootstrap-icons';
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
@@ -80,10 +80,10 @@ async function scrapeWalmart(query: string): Promise<WalmartItem[]> {
     return items;
 }
 
-async function scrapeWalmartList(querylist: string): Promise<WalmartItem[][]> {
+async function scrapeWalmartList(querylist: string): Promise<ItemCache> {
     const itemList = querylist.split("_");
     const browser = await puppeteer.launch({ headless: "new", executablePath: executablePath() });
-    const items = await Promise.all(
+    const items : WalmartItem[][] = await Promise.all(
         itemList.map(async (item) => {
             const page = await browser.newPage();
             await page.goto(`https://www.walmart.com/search?q=${item}&sort=price_low`);
@@ -120,8 +120,14 @@ async function scrapeWalmartList(querylist: string): Promise<WalmartItem[][]> {
                 return parseSearchResults(itemRoot);
             });
         }));
+
     await browser.close();
-    return items;
+
+    const cache : ItemCache = {};
+    itemList.forEach((itemName : string, index) => {
+            cache[itemName] = items[index];
+    });
+    return cache;
 }
 
 async function scrapeWalmartItems(urls: string) : Promise<SupplementaryInfo[]> {

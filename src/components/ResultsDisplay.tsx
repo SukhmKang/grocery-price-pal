@@ -1,10 +1,10 @@
 import React from 'react';
-import { WalmartItem } from '../constants';
+import { ItemCache, WalmartItem } from '../constants';
 import WalmartItemDisplay from './WalmartItemDisplay'
 
 interface IProps {
     setShowResults: (show: boolean) => void;
-    walmartItems: WalmartItem[][];
+    walmartItems: ItemCache;
 }
 class ResultsDisplay extends React.Component<IProps> {
     constructor(props: IProps) {
@@ -20,8 +20,8 @@ class ResultsDisplay extends React.Component<IProps> {
 
                 <h1>Your Grocery List</h1>
                 <button onClick={() => setShowResults(false)}>Go Back</button>
-                {walmartItems.map((itemOptions, i) =>
-                    <WalmartItemDisplay key={i} itemOptions={itemOptions}></WalmartItemDisplay>
+                {Object.entries(walmartItems).map(([itemName, itemOptions]) =>
+                    <WalmartItemDisplay key={itemName} itemOptions={itemOptions}></WalmartItemDisplay>
                 )}
             </div>
         );
